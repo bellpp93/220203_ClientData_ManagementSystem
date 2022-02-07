@@ -43,11 +43,12 @@ import javax.swing.table.DefaultTableModel;
  * 	----	----		-------
  * 	윤종인	2022.02.03	인트로 화면 구현 중 메뉴, West쪽의 입력, 신상정보 보더
  * 	윤종인	2022.02.04	인트로 화면 구현 중 South쪽, Center쪽, '추가'기능 구현
+ *  윤종인	2022.02.07	'수정', '삭제', '검색' 버튼 클릭 시 "정보검색 카드"로 바꿈
  */
 
 // 윈도우(GUI) 프로그램 개발 시 먼저 JFrame 클래스로부터 상속을 받자!!
 // JFrame은 최상위 컨테이너이다.
-public class ManageSystem extends JFrame {
+public class ManageSystem extends JFrame {  // 외부 클래스
 	public static final String String = null;
 	
 	// 내부 클래스 객체 생성
@@ -306,12 +307,91 @@ public class ManageSystem extends JFrame {
 
 		@Override  // 자식 클래스에 맞게 재정의해라!!
 		public void actionPerformed(ActionEvent e) {
-			if(e.getActionCommand().equals("추가")) addData();  // addData(); => 사용자(개발자) 정의 메소드 호출
+			if(e.getActionCommand().equals("추가")) addData();  // addData(); => 사용자(개발자)가 정의한 메소드 호출
+			if(e.getActionCommand().equals("수정")) updateData();
+			if(e.getActionCommand().equals("삭제")) deleteData();
+			if(e.getActionCommand().equals("검색")) searchData();
 		}
+		// [중요] '검색' 버튼에서 ActionEvent가 발생했을 때 처리하는 메소드 구현
+		public void searchData() {
+			// west.output.card.next(west.output);  // [방법 1]
+			
+			west.output.card.show(west.output, "정보검색 카드");  // [방법 2]
+		}
+		
+		// '삭제' 버튼에서 ActionEvent가 발생했을 때 처리하는 메소드 구현
+		public void deleteData() {
+			int yes_no_select = JOptionPane.showConfirmDialog(null, 
+					"정말 삭제하겠습니까?", 
+					"삭제 확인 창", 
+					JOptionPane.YES_NO_OPTION);
+			if (yes_no_select == JOptionPane.YES_OPTION) {
+				addBtn.setEnabled(true);
+				
+				JTable tb = showTable.table;
+				int deleteRow = tb.getSelectedRow();
+				
+				if(deleteRow == -1) {  // 사용자가 어느 행을 선택하지 않고 "삭제" 버튼을 누른 경우
+					return;  // 현재 상태 그대로 유지해라
+				} else {
+					DefaultTableModel model = (DefaultTableModel)tb.getModel();
+					model.removeRow(deleteRow);
+					
+					west.input.tf[0].setText(null);
+					west.input.tf[1].setText(null);
+					west.input.tf[2].setText(null);
+					west.input.tf[3].setText(null);
+					west.input.tf[4].setText(null);
+					west.input.box.setSelectedIndex(0);  // '선택'으로 초기화 시켜라
+					
+					west.output.label[0].setText("   나이 :" + "");
+					west.output.label[1].setText("   성별 :" + "");
+					west.output.label[2].setText("   출생지역 :" + "");
+					west.output.label[3].setText("   생일 :" + "");
+					west.input.tf[0].requestFocus();
+				}
+			} else {
+				return;
+			}
+		}
+		
+		// '수정' 버튼에서 ActionEvent가 발생했을 때 처리하는 메소드 구현
+		public void updateData() {
+			
+			int updateRow = showTable.table.getSelectedRow();
+			
+			// '핸드폰번호' 수정 시
+			showTable.table.setValueAt(west.input.tf[2].getText(), updateRow, 2);
+			
+			// '이메일' 수정 시
+			showTable.table.setValueAt(west.input.tf[3].getText(), updateRow, 3);
+			
+			// '직업' 수정 시
+			showTable.table.setValueAt(west.input.box.getSelectedItem().toString(), updateRow, 9);
+			
+			west.input.tf[0].setText(null);
+			west.input.tf[1].setText(null);
+			west.input.tf[2].setText(null);
+			west.input.tf[3].setText(null);
+			west.input.tf[4].setText(null);
+			west.input.box.setSelectedIndex(0);  // '선택'으로 초기화 시켜라
+			
+			// 데이터 "수정"후 다음 데이터를 입력 받기 위해서 주민번호 입력란 다시 활성화 시키자!!
+			west.input.tf[4].setEditable(true);
+			west.input.tf[0].requestFocus();  // 번호 입력란에 포커스를 넣어라!!
+			
+			west.output.label[0].setText("   나이 :" + "");
+			west.output.label[1].setText("   성별 :" + "");
+			west.output.label[2].setText("   출생지역 :" + "");
+			west.output.label[3].setText("   생일 :" + "");
+			return;
+		}
+		
 		public void addData() {
 			nextBtn.setEnabled(true);  //'다음' 버튼 활성화
+			
 			vector = new Vector<String>();  // 가변배열
-			vector.add(west.input.tf[0].getText());  // 번호  / 할아버지.아버지.자식(본인)
+			vector.add(west.input.tf[0].getText());  // 번호  / west.input.tf[0] => 할아버지.아버지.자식(본인)
 			vector.add(west.input.tf[1].getText());  // 이름
 			vector.add(west.input.tf[2].getText());  // 핸드폰번호
 			vector.add(west.input.tf[3].getText());  // 이메일
@@ -327,14 +407,15 @@ public class ManageSystem extends JFrame {
 			int sum = 0;
 			int temp, result;
 			
-			// '주민번호' 정규 표현식(regex)
-			String regex = "[0-9]{6}-[1234][0-9]{6}";
+			// '주민번호' 정규 표현식(regex) 적용 => 유효성 체크
+			String regex = "[0-9]{6}-[1234][0-9]{6}";  // [0 ~ 9중]{반복횟수}
 			boolean check = juminNum.matches(regex);
 			
-			if(check == false) {
+			if (check == false) {
 				JOptionPane.showMessageDialog(null, 
-						"주민번호가 형식에 맞지 않음"+"\n"+"주민번호를 다시 입력하세요.", 
-						"에러메시지", JOptionPane.ERROR_MESSAGE);  // 부정적인 메소드에는 인자값 4개짜리(아이콘이 빨간 X가 나옴)
+						"주민번호가 형식에 맞지 않음" + "\n" + "주민번호를 다시 입력하세요.", 
+						"에러메시지",
+						JOptionPane.ERROR_MESSAGE); // 부정적인 메소드에는 인자값 4개짜리(아이콘이 빨간 X가 나옴)
 				
 				// 사용자를 위한 배려
 				west.input.tf[4].setText(null);
@@ -415,8 +496,11 @@ public class ManageSystem extends JFrame {
 			}  // end if문
 			
 			// 사용자가 선택한 직업 얻어내기
-			vector.add(west.input.box.getSelectedItem().toString());  // getSelectedItem() => 사용자가 지정한 Item을 가지고 와라 / .toString() => 객체를 String으로 변환
+			// getSelectedItem() 메소드는 리턴 타입이 Object이기 때문에 String 타입으로 변환하여 리턴해야함!!
+			// getSelectedItem() => 사용자가 지정한 Item을 가지고 와라 / .toString() => 객체를 String으로 변환
+			vector.add(west.input.box.getSelectedItem().toString());
 			
+			// 사용자에 대한 배려
 			west.input.tf[0].setText(null);
 			west.input.tf[1].setText(null);
 			west.input.tf[2].setText(null);
@@ -426,7 +510,7 @@ public class ManageSystem extends JFrame {
 			west.input.tf[0].requestFocus();  // 번호 입력란에 포커스를 넣어라!!
 			
 			showTable.data.addElement(vector);
-			showTable.datamodel.fireTableDataChanged();
+			showTable.datamodel.fireTableDataChanged();  // 변화를 통보해준다.
 		}
 	}
 //	end Buttons 클래스
@@ -441,10 +525,10 @@ public class ManageSystem extends JFrame {
 		
 		String[] colName = {"번호","이름","핸드폰번호","E-Mail","주민번호","나이","성별","출생지역","생일","직업"};
 		
-		Vector<Vector<String>> data;
+		Vector<Vector<String>> data;  // [아주 중요]
 		Vector<String> column_name;
 		
-		int row = -1;
+		int row = -1;  // 전역 변수 선언
 		
 		// 생성자
 		public ShowTable() {
@@ -454,12 +538,17 @@ public class ManageSystem extends JFrame {
 			for (int i = 0; i < colName.length; i++) {
 				column_name.add(colName[i]);
 			}
+			// [1단계] DefaultTableModel 클래스 객체 생성
+			// public DefaultTableModel(Vector data, Vector columnNames) 생성자 적용
 			datamodel = new DefaultTableModel(data, column_name) {
 				public boolean isCellEditable(int row, int column) {
-					return false;
+					return false;  // Cell에서 수정을 방지하려면 false로 준다.
 				};
 			};
+			// [2단계] JTable 객체 생성
 			table = new JTable(datamodel);
+			
+			// [3단계] JScrollPane 객체 생성
 			scrollPane = new JScrollPane(table);
 			
 			// 이벤트 연결 => addxxxListener() 메소드
@@ -468,7 +557,30 @@ public class ManageSystem extends JFrame {
 		
 		@Override  // 수동으로 오버라이드 시킨다.
 		public void mouseClicked(MouseEvent e) {
-			super.mouseClicked(e);
+			row = table.getSelectedRow();
+			Info();  // 사용자 정의 메소드 호출
+		}
+		public void Info() {
+			int row = this.row;
+			
+			west.input.tf[0].setText((String)showTable.table.getValueAt(row, 0));  // 번호
+			west.input.tf[1].setText((String)showTable.table.getValueAt(row, 1));  // 이름
+			west.input.tf[2].setText((String)showTable.table.getValueAt(row, 2));  // 핸드폰번호
+			west.input.tf[3].setText((String)showTable.table.getValueAt(row, 3));  // 이메일
+			west.input.tf[4].setText((String)showTable.table.getValueAt(row, 4));  // 주민등록번호
+			
+			// [중요] 주민번호를 수정 못하게 비활성화 시키자!
+			west.input.tf[4].setEditable(false);
+			
+			// 직업을 west.input 객체에 보여주기
+			west.input.box.setSelectedItem(showTable.table.getValueAt(row, 9));  // 직업
+			
+			west.output.label[0].setText("   나이 :" + "   " + showTable.table.getValueAt(row, 5));  // 나이
+			west.output.label[1].setText("   성별 :" + "   " + showTable.table.getValueAt(row, 6));  // 성별
+			west.output.label[2].setText("   출생지역 :" + "   " + showTable.table.getValueAt(row, 7));  // 출생지역
+			west.output.label[3].setText("   생일 :" + "   " + showTable.table.getValueAt(row, 8));  // 생일
+			
+			showTable.table.changeSelection(row, 0, false, false);
 		}
 	}
 //	end ShowTable 클래스
