@@ -49,6 +49,7 @@ import javax.swing.table.DefaultTableModel;
  * 	윤종인	2022.02.03	인트로 화면 구현 중 메뉴, West쪽의 입력, 신상정보 보더
  * 	윤종인	2022.02.04	인트로 화면 구현 중 South쪽, Center쪽, '추가'기능 구현
  * 	윤종인	2022.02.07	'수정', '삭제', '검색' 버튼 클릭 시 "정보검색 카드"로 바꿈
+ * 	윤종인	2022.02.08	'검색', '파일 열기', '파일 저장', '닫기' 기능 구현
  */
 
 // 윈도우(GUI) 프로그램 개발 시 먼저 JFrame 클래스로부터 상속을 받자!!
@@ -218,7 +219,7 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 		
 		// '닫기' 기능 메소드 구현
 		public void exit() {
-			
+			System.exit(0);  // 프로그램 정상 종료 시켜라!!
 		}
 		
 		@Override
