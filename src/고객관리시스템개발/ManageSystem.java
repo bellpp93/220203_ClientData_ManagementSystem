@@ -225,6 +225,10 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 				searchButton.setBackground(Color.CYAN);
 				exitButton.setBackground(Color.LIGHT_GRAY);
 				
+				// 이벤트 연결
+				searchButton.addActionListener(this);
+				exitButton.addActionListener(this);
+				
 				setPreferredSize(new Dimension(340, 300));
 				
 				int x = -70;
@@ -255,7 +259,51 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				// [중요] searchType 값을 search() 메소드에게 전달하여 하나의 메소드로 네 가지 검색 기능을 해결하자!!
+				if(e.getActionCommand().equals("이름"))			searchType = 1;
+				else if(e.getActionCommand().equals("직업"))		searchType = 9;
+				else if(e.getActionCommand().equals("출생지역"))	searchType = 7;
+				else if(e.getActionCommand().equals("생일"))		searchType = 8;
+				else if(e.getActionCommand().equals("찾기"))		search();  // 사용자 정의 메소드 호출
+				else if(e.getActionCommand().equals("나가기"))	goOut();  // 사용자 정의 메소드 호출
+			}
+			// '찾기' 버튼 클릭 시 처리할 메소드 구현
+			public void search() {
+				Vector v = new Vector();
 				
+				// 순차 검색(Sequential search 알고리즘 적용
+				for (int i = 0; i < showTable.data.size(); i++) {
+					// [아주 중요] 테크닉
+					if(nameText.getText().equals(showTable.data.elementAt(i).get(searchType))) {
+						v.addElement(showTable.data.elementAt(i));
+					}
+				}
+				showTable.datamodel.setDataVector(v, showTable.column_name);
+				showTable.TableSize();  // 셀 크기 조절 메소드 호출
+				nameText.setText(null);
+			}
+			// '나가기' 버튼 클릭 시 처리할 메소드 구현 => 다시 JTable에 전체 데이터를 보여주기
+			public void goOut() {
+				west.output.card.show(west.output, "신상정보 카드");  // 카드 바꾸기
+				
+				buttons.addBtn.setEnabled(true);  // '추가' 버튼 활성화
+//				buttons.nextBtn.setEnabled(true);  // '다음' 버튼 활성화
+				
+				west.input.tf[0].setText(null);  // west 값 지우기
+				west.input.tf[1].setText(null);
+				west.input.tf[2].setText(null);
+				west.input.tf[3].setText(null);
+				west.input.tf[4].setText(null);
+				west.input.box.setSelectedIndex(0);  // '선택'으로 초기화 시켜라
+				west.input.tf[0].requestFocus();
+				
+				west.output.label[0].setText("   나이 :");
+				west.output.label[1].setText("   성별 :");
+				west.output.label[2].setText("   출생지역 :");
+				west.output.label[3].setText("   생일 :");
+				
+				showTable.datamodel.setDataVector(showTable.data, showTable.column_name);  // 전체 데이터 뿌려주기
+				showTable.TableSize();  // 셀 크기 조절 메소드 호출
 			}
 		}
 	}
@@ -483,6 +531,7 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 					vector.add(sung);
 					vector.add(birthplace);
 					vector.add(juminNum.substring(2, 4) + "월" + juminNum.substring(4, 6) + "일");
+					showTable.TableSize();  // 셀 크기 조절 메소드 호출
 				} else {
 					JOptionPane.showMessageDialog(null, 
 							"주민번호가 틀림.", 
@@ -581,6 +630,20 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 			west.output.label[3].setText("   생일 :" + "   " + showTable.table.getValueAt(row, 8));  // 생일
 			
 			showTable.table.changeSelection(row, 0, false, false);
+		}  // end Info()
+		
+		// JTable의 셀의 크기 조절하기
+		public void TableSize() {
+			table.getColumnModel().getColumn(0).setPreferredWidth(50);	// 번호 셀 넓이
+			table.getColumnModel().getColumn(1).setPreferredWidth(50);	// 이름 셀 넓이
+			table.getColumnModel().getColumn(2).setPreferredWidth(120);	// 핸드폰번호 셀 넓이
+			table.getColumnModel().getColumn(3).setPreferredWidth(150);	// 이메일 셀 넓이
+			table.getColumnModel().getColumn(4).setPreferredWidth(130);	// 주민번호 셀 넓이
+			table.getColumnModel().getColumn(5).setPreferredWidth(50);	// 나이 셀 넓이
+			table.getColumnModel().getColumn(6).setPreferredWidth(50);	// 성별 셀 넓이
+			table.getColumnModel().getColumn(7).setPreferredWidth(80);	// 출생지역 셀 넓이
+			table.getColumnModel().getColumn(8).setPreferredWidth(70);	// 생일 셀 넓이
+			table.getColumnModel().getColumn(9).setPreferredWidth(70);	// 직업 셀 넓이
 		}
 	}
 //	end ShowTable 클래스
