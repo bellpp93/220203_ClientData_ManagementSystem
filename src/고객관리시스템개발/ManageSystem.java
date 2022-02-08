@@ -12,7 +12,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.BufferedWriter;
 import java.util.Locale;
+import java.util.StringTokenizer;
 import java.util.Calendar;
 import java.util.Vector;
 
@@ -120,7 +125,7 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 			
 			sno = new JCheckBoxMenuItem("번호");
 			sname = new JCheckBoxMenuItem("이름");
-			schul = new JCheckBoxMenuItem("출신지역");
+			schul = new JCheckBoxMenuItem("출생지역");
 			sjob = new JCheckBoxMenuItem("직업");
 			
 			proinfo = new JMenuItem("프로그램 정보");
@@ -132,10 +137,87 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 			help.add(proinfo);
 			
 			bar.add(file); bar.add(sort); bar.add(help);
+			
+			// '파일' 메뉴 이벤트 연결
+			fopen.addActionListener(this);  // '열기'
+			fsave.addActionListener(this);  // '저장'
+			fexit.addActionListener(this);  // '닫기'
+			
+			// '정렬' 메뉴 이벤트 연결
+			sno.addItemListener(this);  // '번호' 정렬
+			sname.addItemListener(this);  // '이름' 정렬
+			schul.addItemListener(this);  // '출생지역' 정렬
+			sjob.addItemListener(this);  // '직업' 정렬
 		}
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if(e.getActionCommand().equals("열기"))	open();
+			else if(e.getActionCommand().equals("저장"))	save();
+			else if(e.getActionCommand().equals("닫기"))	exit();
+		}
+		// '파일' 열기 기능 메소드 구현
+		public void open() {
+			StringTokenizer st;
+			Vector v;
+			
+			readOpen = new FileDialog(ManageSystem.this, "문서열기", FileDialog.LOAD);
+			readOpen.setVisible(true);
+			
+			fileDir = readOpen.getDirectory();
+			fileName = readOpen.getFile();
+			readfileName = fileDir + "//" + fileName;
+			
+			try {
+				BufferedReader read = new BufferedReader(new FileReader(readfileName));
+				String line = null;
+				
+				while((line = read.readLine()) != null) {
+					// 메모장에 이렇게 저장되어 있음 => 1, 홍길동, 010-2415-1234, ..., 프로그래머
+					st = new StringTokenizer(line, ", ");  // ", " => 구분문자(delimiter)
+					v = new Vector();
+					
+					while(st.hasMoreTokens()) {
+						v.add(st.nextToken());
+					}
+					showTable.data.addElement(v);
+				}
+				showTable.datamodel.fireTableDataChanged();
+				read.close();  // 자원 해제
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
+		
+		// '파일' 저장 기능 메소드 구현
+		public void save() {
+			saveOpen = new FileDialog(ManageSystem.this, "문서저장", FileDialog.SAVE);
+			saveOpen.setVisible(true);
+			
+			fileDir = saveOpen.getDirectory();
+			fileName = saveOpen.getFile();
+			savefileName = fileDir + "//" + fileName;
+			
+			String str = "";
+			String temp = "";
+			
+			try {
+				BufferedWriter save = new BufferedWriter(new FileWriter(savefileName));
+				
+				for (int i = 0; i < showTable.table.getRowCount(); i++) {
+					temp = showTable.data.elementAt(i).toString();
+					// vector 객체에 저장 형태를 보면 [1, 홍길동, 010-2415-1234, ..., 프로그래머]
+					str += temp.substring(1, temp.length() - 1) + "\n";  // 앞과 뒤에 있는 []대괄호를 빼고 줄바꿈
+				}
+				save.write(str);
+				save.close();  // 저장이 끝났으면 '자원 해제'
+			} catch (Exception ex) {
+				System.out.println(ex);
+			}
+		}
+		
+		// '닫기' 기능 메소드 구현
+		public void exit() {
 			
 		}
 		
