@@ -105,7 +105,7 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 		// 전역개념(전역참조변수)으로 생성자 밖으로 빼냄
 		JMenuBar bar;
 		JMenu file, sort, help;
-		JMenuItem fopen, fsave, fexit, proinfo;
+		JMenuItem fopen, fsave, fexit, proinfo;  // '열기', '저장', '닫기', '검색'
 		JCheckBoxMenuItem sno, sname, schul, sjob;
 		
 		FileDialog saveOpen, readOpen;
@@ -224,7 +224,83 @@ public class ManageSystem extends JFrame {  // 외부 클래스
 		
 		@Override
 		public void itemStateChanged(ItemEvent e) {
+			if(e.getSource().equals(sno))  numSort();				// '번호'정렬 사용자 정의 메소드 호출
+			else if(e.getSource().equals(sname))  stringSort(1);	// '이름'정렬 사용자 정의 메소드 호출
+			else if(e.getSource().equals(schul))  stringSort(7);	// '출생지역'정렬 사용자 정의 메소드 호출
+			else if(e.getSource().equals(sjob))  stringSort(9);		// '직업'정렬 사용자 정의 메소드 호출
+		}
+		// '번호'정렬 사용자 정의 메소드 구현
+		public void numSort() {  // 번호정렬 따로만드는 이유? 혼자만 숫자 이기도 하고 1~9까지는 잘 정렬되지만 10이 넘어가면 정렬이 잘 안되는 경우가 있음.
+			/*
+			 * '번호' 정렬 시나리오
+			 * 1. 2차원 배열을 생성해놓고
+			 * 2. JTable에 있는 데이터들을 2차원 배열로 옮긴다.
+			 * 3. 2차원 배열 정렬시킨다. => 선택 정렬 알고리즘 적용하여 해결한다.
+			 * 4. 정렬시킨 2차원의 결과를 JTable에 옮기자
+			 */
+			int row = showTable.table.getRowCount();	// 행의 개수 얻어옴 => 몇 사람의 수가 있느냐?
+			int col = showTable.table.getColumnCount();	// 열의 개수 얻어옴
 			
+			String temp;
+			String[][] arr = new String[row][col];
+			
+			// JTable에 있는 데이터들을 2차원 배열로 옮긴다.
+			for (int i = 0; i < row; i++) {
+				for (int j = 0; j < col; j++) {
+					arr[i][j] = (String) showTable.table.getValueAt(i, j);
+				}
+			}
+			// 선택 정렬 알고리즘 적용하여 2차원 배열 정렬시킨다.
+			for (int i = 0; i < row - 1; i++) {
+				for (int j = i + 1; j < row; j++) {
+					if (Integer.parseInt(arr[i][0]) > Integer.parseInt(arr[j][0])) {
+						for (int k = 0; k < col; k++) {
+							temp = arr[i][k];
+							arr[i][k] = arr[j][k];
+							arr[j][k] = temp;
+						}
+					}
+				}
+			}
+			// 정렬시킨 2차원의 결과를 JTable에 옮기자
+			for (int i = 0; i < row; i++) {
+				for (int j = 0; j < col; j++) {
+					showTable.table.setValueAt(arr[i][j], i, j);
+				}
+			}
+		}
+		// 하나의 사용자 정의 메소드로 '이름','출생지역','직업'정렬 기능을 구현
+		public void stringSort(int sortType) {
+			int row = showTable.table.getRowCount();	// 행의 개수 얻어옴 => 몇 사람의 수가 있느냐?
+			int col = showTable.table.getColumnCount();	// 열의 개수 얻어옴
+			
+			String temp;
+			String[][] arr = new String[row][col];
+			
+			// JTable에 있는 데이터들을 2차원 배열로 옮긴다.
+			for (int i = 0; i < row; i++) {
+				for (int j = 0; j < col; j++) {
+					arr[i][j] = (String) showTable.table.getValueAt(i, j);
+				}
+			}
+			// 선택 정렬 알고리즘 적용하여 2차원 배열 정렬시킨다.
+			for (int i = 0; i < row - 1; i++) {
+				for (int j = i + 1; j < row; j++) {
+					if (arr[i][sortType].compareTo(arr[j][sortType]) > 0) {
+						for (int k = 0; k < col; k++) {
+							temp = arr[i][k];
+							arr[i][k] = arr[j][k];
+							arr[j][k] = temp;
+						}
+					}
+				}
+			}
+			// 정렬시킨 2차원의 결과를 JTable에 옮기자
+			for (int i = 0; i < row; i++) {
+				for (int j = 0; j < col; j++) {
+					showTable.table.setValueAt(arr[i][j], i, j);
+				}
+			}
 		}
 	}
 //	end MenuMain 클래스
